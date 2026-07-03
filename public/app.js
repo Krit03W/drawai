@@ -93,6 +93,7 @@ function render() {
       showScreen('draw');
       $('drawRound').textContent = state.round;
       $('drawWord').textContent = myWord || '…';
+      $('drawDiff').textContent = `· ความยาก ${'★'.repeat(state.difficulty)}${'☆'.repeat(5 - state.difficulty)}`;
       setSubmittedUI(me.submitted || state.phase === 'collecting');
       renderBoard($('drawBoard'), true);
       break;

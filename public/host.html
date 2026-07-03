@@ -45,6 +45,16 @@
             <label>เวลาทาย (วินาที)</label>
             <input type="number" id="guessSeconds" value="45" min="15" max="300" style="width:120px">
           </div>
+          <div>
+            <label>ความยากของคำ</label>
+            <select id="difficulty" style="width:230px">
+              <option value="1">1 · ง่ายมาก 🍼</option>
+              <option value="2" selected>2 · ง่าย 🙂</option>
+              <option value="3">3 · ปานกลาง 🤔</option>
+              <option value="4">4 · ยาก 🥵</option>
+              <option value="5">5 · ไม่น่าจะวาดได้ 💀</option>
+            </select>
+          </div>
           <button class="btn big" id="startBtn">▶️ เริ่มรอบใหม่</button>
           <button class="btn secondary" id="forceBtn">⏭ ข้ามเฟสนี้</button>
           <span class="spacer"></span>

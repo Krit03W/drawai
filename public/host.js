@@ -40,6 +40,7 @@ $('startBtn').onclick = () => {
   socket.emit('host-start-round', {
     drawSeconds: Number($('drawSeconds').value),
     guessSeconds: Number($('guessSeconds').value),
+    difficulty: Number($('difficulty').value),
   });
   $('resultsGrid').innerHTML = '';
 };

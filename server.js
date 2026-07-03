@@ -59,8 +59,17 @@ const game = {
   phaseEndsAt: null,
   drawSeconds: 120,
   guessSeconds: 45,
+  difficulty: 2, // 1 easy … 5 nearly impossible
   usedWords: [],
   teams: {},
+};
+
+const DIFFICULTY_SPECS = {
+  1: 'VERY EASY: extremely common, simple objects a small child can draw in seconds (e.g. sun, cat, ball, house).',
+  2: 'EASY: common concrete things — animals, food, vehicles, everyday objects (e.g. monkey, pizza, rocket).',
+  3: 'MEDIUM: concrete but detailed things that take effort to draw recognizably (e.g. lighthouse, scarecrow, submarine).',
+  4: 'HARD: compound scenes, actions or phenomena that are tricky to convey in a sketch (e.g. traffic jam, earthquake, sleepwalking).',
+  5: 'EXTREME: abstract concepts, feelings or invisible ideas that are nearly impossible to draw (e.g. gravity, sarcasm, nostalgia, democracy).',
 };
 for (const t of TEAM_DEFS) {
   game.teams[t.id] = {
@@ -97,6 +106,7 @@ function publicState() {
     phaseEndsAt: game.phaseEndsAt,
     drawSeconds: game.drawSeconds,
     guessSeconds: game.guessSeconds,
+    difficulty: game.difficulty,
     teams: TEAM_DEFS.map(({ id }) => {
       const t = game.teams[id];
       return {
@@ -175,14 +185,15 @@ async function openaiChat(messages, maxTokens = 300, temperature = 0) {
 }
 
 async function generateWords(count) {
-  if (!OPENAI_API_KEY) return pickUniqueWords(count);
+  if (!OPENAI_API_KEY) return pickUniqueWords(count, game.difficulty);
   try {
     const out = await openaiChat([
       {
         role: 'user',
         content:
-          `Generate exactly ${count} DISTINCT simple, concrete, drawable English nouns for a drawing party game ` +
-          `(things like animals, food, vehicles, objects). One or two words each, easy for anyone to draw. ` +
+          `Generate exactly ${count} DISTINCT English words/phrases for a drawing party game. ` +
+          `Difficulty level ${game.difficulty}/5 — ${DIFFICULTY_SPECS[game.difficulty]} ` +
+          `Every word must match that difficulty level. One to three words each. ` +
           (game.usedWords.length ? `Do NOT use any of these already-used words: ${game.usedWords.join(', ')}. ` : '') +
           `Respond as JSON: {"words": ["...", ...]}`,
       },
@@ -192,10 +203,10 @@ async function generateWords(count) {
       lw => words.find(w => w.toLowerCase() === lw),
     );
     if (unique.length >= count) return unique.slice(0, count);
-    return [...unique, ...pickUniqueWords(count - unique.length)];
+    return [...unique, ...pickUniqueWords(count - unique.length, game.difficulty)];
   } catch (err) {
     console.error('Word generation failed, using fallback list:', err.message);
-    return pickUniqueWords(count);
+    return pickUniqueWords(count, game.difficulty);
   }
 }
 
@@ -258,7 +269,7 @@ async function judgeMatches(pairs) {
 // ---------------------------------------------------------------------------
 // Game flow
 // ---------------------------------------------------------------------------
-async function startRound(drawSeconds, guessSeconds) {
+async function startRound(drawSeconds, guessSeconds, difficulty) {
   const active = activeTeamIds();
   if (active.length < 2) {
     io.to('hosts').emit('toast', 'ต้องมีอย่างน้อย 2 ทีมที่มีผู้เล่นออนไลน์');
@@ -268,6 +279,7 @@ async function startRound(drawSeconds, guessSeconds) {
   game.round += 1;
   game.drawSeconds = Math.max(30, Math.min(600, drawSeconds || 120));
   game.guessSeconds = Math.max(15, Math.min(300, guessSeconds || 45));
+  game.difficulty = DIFFICULTY_SPECS[difficulty] ? difficulty : game.difficulty;
 
   for (const id of Object.keys(game.teams)) game.teams[id].rd = freshRoundData();
 
@@ -479,10 +491,10 @@ io.on('connection', (socket) => {
   });
 
   // --- host controls ---
-  socket.on('host-start-round', ({ drawSeconds, guessSeconds } = {}) => {
+  socket.on('host-start-round', ({ drawSeconds, guessSeconds, difficulty } = {}) => {
     if (!isHost) return;
     if (!['lobby', 'results'].includes(game.phase)) return;
-    startRound(Number(drawSeconds), Number(guessSeconds));
+    startRound(Number(drawSeconds), Number(guessSeconds), Number(difficulty));
   });
 
   socket.on('host-force-next', () => {
