@@ -58,6 +58,9 @@ socket.on('state', (s) => {
   state = s;
   $('roundNum').textContent = s.round;
   $('phaseLabel').textContent = PHASE_LABELS[s.phase] || s.phase;
+  $('aiBadge').innerHTML = s.aiConnected
+    ? '🤖 OpenAI: <b style="color:var(--good)">เชื่อมต่อแล้ว</b>'
+    : '🤖 OpenAI: <b style="color:var(--bad)">ไม่มี API KEY — ใช้คำสำรอง!</b>';
   $('startBtn').disabled = !['lobby', 'results'].includes(s.phase);
   $('forceBtn').disabled = !['drawing', 'collecting', 'guessing'].includes(s.phase);
   renderBoard();

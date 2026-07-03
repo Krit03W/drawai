@@ -29,8 +29,12 @@ export const FALLBACK_WORDS = {
   ],
 };
 
-export function pickUniqueWords(count, difficulty = 2) {
-  const pool = [...(FALLBACK_WORDS[difficulty] || FALLBACK_WORDS[2])];
+export function pickUniqueWords(count, difficulty = 2, exclude = []) {
+  const used = new Set(exclude.map(w => w.toLowerCase()));
+  let pool = (FALLBACK_WORDS[difficulty] || FALLBACK_WORDS[2])
+    .filter(w => !used.has(w.toLowerCase()));
+  // If the tier is exhausted, allow reuse rather than running out of words.
+  if (pool.length < count) pool = [...(FALLBACK_WORDS[difficulty] || FALLBACK_WORDS[2])];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];

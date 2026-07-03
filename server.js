@@ -107,6 +107,7 @@ function publicState() {
     drawSeconds: game.drawSeconds,
     guessSeconds: game.guessSeconds,
     difficulty: game.difficulty,
+    aiConnected: !!OPENAI_API_KEY,
     teams: TEAM_DEFS.map(({ id }) => {
       const t = game.teams[id];
       return {
@@ -185,28 +186,34 @@ async function openaiChat(messages, maxTokens = 300, temperature = 0) {
 }
 
 async function generateWords(count) {
-  if (!OPENAI_API_KEY) return pickUniqueWords(count, game.difficulty);
+  const used = game.usedWords;
+  if (!OPENAI_API_KEY) {
+    io.to('hosts').emit('toast', '⚠️ ไม่มี OPENAI_API_KEY — ใช้คำสำรองในเครื่องแทน');
+    return pickUniqueWords(count, game.difficulty, used);
+  }
   try {
     const out = await openaiChat([
       {
         role: 'user',
         content:
-          `Generate exactly ${count} DISTINCT English words/phrases for a drawing party game. ` +
+          `Generate exactly ${count + 4} DISTINCT, creative English words/phrases for a drawing party game. ` +
           `Difficulty level ${game.difficulty}/5 — ${DIFFICULTY_SPECS[game.difficulty]} ` +
-          `Every word must match that difficulty level. One to three words each. ` +
-          (game.usedWords.length ? `Do NOT use any of these already-used words: ${game.usedWords.join(', ')}. ` : '') +
+          `Every word must match that difficulty level. One to three words each. Vary the categories; be unpredictable. ` +
+          (used.length ? `Do NOT use any of these already-used words: ${used.join(', ')}. ` : '') +
           `Respond as JSON: {"words": ["...", ...]}`,
       },
-    ], 300, 0.9);
+    ], 400, 1.0);
     const words = (out.words || []).map(w => String(w).trim()).filter(Boolean);
-    const unique = [...new Set(words.map(w => w.toLowerCase()))].map(
-      lw => words.find(w => w.toLowerCase() === lw),
-    );
+    const usedSet = new Set(used.map(w => w.toLowerCase()));
+    const unique = [...new Set(words.map(w => w.toLowerCase()))]
+      .filter(lw => !usedSet.has(lw))
+      .map(lw => words.find(w => w.toLowerCase() === lw));
     if (unique.length >= count) return unique.slice(0, count);
-    return [...unique, ...pickUniqueWords(count - unique.length, game.difficulty)];
+    return [...unique, ...pickUniqueWords(count - unique.length, game.difficulty, [...used, ...unique])];
   } catch (err) {
     console.error('Word generation failed, using fallback list:', err.message);
-    return pickUniqueWords(count, game.difficulty);
+    io.to('hosts').emit('toast', `⚠️ สุ่มคำผ่าน OpenAI ล้มเหลว (${err.message.slice(0, 80)}) — ใช้คำสำรองแทน`);
+    return pickUniqueWords(count, game.difficulty, used);
   }
 }
 
