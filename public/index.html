@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Can't Guess This! 🎨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="screen active" id="screen-login">
+    <div class="center-wrap">
+      <h1 class="logo">🎨 AI Can't Guess This!</h1>
+      <p class="tagline">วาดให้เพื่อนเดาออก… แต่ให้ AI เดาไม่ถูก!</p>
+      <div class="card">
+        <label>เลือกทีมของคุณ</label>
+        <div class="team-grid" id="teamGrid"></div>
+        <label>รหัสผ่านทีม</label>
+        <input type="password" id="teamPassword" placeholder="รหัสผ่านของทีม" autocomplete="off">
+        <label>ชื่อผู้เล่น</label>
+        <input type="text" id="playerName" placeholder="ชื่อเล่นของคุณ" maxlength="24">
+        <div style="margin-top:18px">
+          <button class="btn big" id="loginBtn" style="width:100%">เข้าร่วมทีม 🚀</button>
+        </div>
+        <p class="error" id="loginError"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="screen-lobby">
+    <div class="lobby-wrap">
+      <div class="topbar">
+        <h1 class="logo" style="font-size:1.5rem">🎨 AI Can't Guess This!</h1>
+        <span class="badge">ทีม: <b id="lobbyTeamName"></b></span>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="big-emoji">⏳</div>
+        <h2>รอโฮสต์เริ่มรอบเกม…</h2>
+        <p style="color:var(--muted)">ชวนเพื่อนร่วมทีมเข้ามาให้ครบ แล้วเตรียมปากกาให้พร้อม!</p>
+      </div>
+      <div class="lobby-grid" id="lobbyGrid"></div>
+    </div>
+  </div>
+
+  <!-- GENERATING WORDS -->
+  <div class="screen" id="screen-generating">
+    <div class="status-wrap">
+      <div class="spinner"></div>
+      <h2>🎲 กำลังสุ่มคำลับให้แต่ละทีม…</h2>
+      <p>AI กำลังคิดคำที่ไม่ซ้ำกันให้ทุกทีม</p>
+    </div>
+  </div>
+
+  <!-- DRAWING -->
+  <div class="screen" id="screen-draw">
+    <div class="draw-layout">
+      <div class="draw-main">
+        <div class="topbar">
+          <span class="badge">รอบที่ <b id="drawRound"></b> · ทีม <b id="drawTeamName"></b></span>
+          <div class="timer" id="drawTimer">--</div>
+        </div>
+        <div class="word-banner">
+          <div class="small">คำลับของทีมคุณ — วาดให้เพื่อนเดาออก แต่ AI เดาไม่ถูก!</div>
+          <div class="word" id="drawWord">…</div>
+        </div>
+        <canvas id="canvas" width="900" height="600"></canvas>
+        <div class="tools" id="tools">
+          <button class="color-dot selected" data-color="#111111" style="background:#111111"></button>
+          <button class="color-dot" data-color="#e63946" style="background:#e63946"></button>
+          <button class="color-dot" data-color="#1d7cf2" style="background:#1d7cf2"></button>
+          <button class="color-dot" data-color="#2fbf71" style="background:#2fbf71"></button>
+          <button class="color-dot" data-color="#f4a261" style="background:#f4a261"></button>
+          <button class="color-dot" data-color="#9b5de5" style="background:#9b5de5"></button>
+          <button class="color-dot" data-color="#ffffff" style="background:#ffffff;border:3px solid #ccc" title="ยางลบ"></button>
+          <button class="size-btn selected" data-size="4"><i style="width:5px;height:5px"></i></button>
+          <button class="size-btn" data-size="10"><i style="width:10px;height:10px"></i></button>
+          <button class="size-btn" data-size="22"><i style="width:17px;height:17px"></i></button>
+          <span class="spacer"></span>
+          <button class="btn secondary" id="undoBtn">↩︎ Undo</button>
+          <button class="btn secondary" id="clearBtn">🗑 ล้าง</button>
+          <button class="btn" id="submitDrawing">ส่งภาพ ✅</button>
+        </div>
+        <div class="guess-done" id="drawSubmittedMsg" style="display:none">
+          ✅ ทีมคุณส่งภาพแล้ว — รอทีมอื่นให้ครบ…
+        </div>
+      </div>
+      <div class="sideboard card">
+        <div class="board-title">🏆 ตารางคะแนน</div>
+        <div id="drawBoard"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUESSING -->
+  <div class="screen" id="screen-guess">
+    <div class="guess-wrap">
+      <div class="topbar">
+        <span class="badge">รอบทายภาพ · ทีม <b id="guessTeamName"></b></span>
+        <div class="timer" id="guessTimer">--</div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:12px">🕵️ ภาพนี้จากทีมอื่น… คุณคิดว่ามันคืออะไร?</h2>
+        <img id="guessImage" alt="ภาพจากทีมอื่น">
+        <div class="guess-input-row" id="guessInputRow">
+          <input type="text" id="guessInput" placeholder="พิมพ์คำตอบของทีม… (ตอบได้ทีมละ 1 ครั้ง)" maxlength="60">
+          <button class="btn" id="guessBtn">ส่งคำตอบ</button>
+        </div>
+        <div class="guess-done" id="guessDoneMsg" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI THINKING -->
+  <div class="screen" id="screen-ai">
+    <div class="status-wrap">
+      <div class="big-emoji">🤖</div>
+      <div class="spinner"></div>
+      <h2>AI กำลังวิเคราะห์ภาพวาดทุกทีม…</h2>
+      <p>ลุ้นกันว่า AI จะโดนหลอกหรือไม่!</p>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="results-wrap">
+      <div class="topbar">
+        <h1 class="logo" style="font-size:1.5rem">📊 ผลรอบที่ <span id="resultsRound"></span></h1>
+        <span class="badge">รอโฮสต์เริ่มรอบถัดไป…</span>
+      </div>
+      <div class="card">
+        <div class="board-title">🏆 อันดับคะแนนรวม</div>
+        <div id="resultsBoard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px"></div>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

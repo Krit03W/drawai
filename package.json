@@ -1,0 +1,14 @@
+{
+  "name": "ai-cant-guess-this",
+  "version": "1.0.0",
+  "description": "Party game: draw so humans can guess but AI can't",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
