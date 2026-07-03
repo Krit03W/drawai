@@ -56,8 +56,8 @@ TEAMS.forEach((t, i) => {
 $('loginBtn').onclick = () => {
   const password = $('teamPassword').value;
   const playerName = $('playerName').value.trim();
-  if (!selectedTeam) return $('loginError').textContent = 'กรุณาเลือกทีมก่อน';
-  if (!playerName) return $('loginError').textContent = 'กรุณาใส่ชื่อผู้เล่น';
+  if (!selectedTeam) return $('loginError').textContent = 'Please select a team first';
+  if (!playerName) return $('loginError').textContent = 'Please enter your name';
   socket.emit('login', { teamId: selectedTeam, password, playerName }, (res) => {
     if (!res.ok) return $('loginError').textContent = res.error;
     myTeamId = selectedTeam;
@@ -93,7 +93,7 @@ function render() {
       showScreen('draw');
       $('drawRound').textContent = state.round;
       $('drawWord').textContent = myWord || '…';
-      $('drawDiff').textContent = `· ความยาก ${'★'.repeat(state.difficulty)}${'☆'.repeat(5 - state.difficulty)}`;
+      $('drawDiff').textContent = `· Difficulty ${'★'.repeat(state.difficulty)}${'☆'.repeat(5 - state.difficulty)}`;
       setSubmittedUI(me.submitted || state.phase === 'collecting');
       renderBoard($('drawBoard'), true);
       break;
@@ -112,8 +112,8 @@ function renderLobby() {
     div.className = 'lobby-team' + (t.id === myTeamId ? ' me' : '');
     div.innerHTML = `
       <div class="tname">${i + 1}. ${esc(t.name)} ${t.players.length ? '🟢' : '⚪️'}</div>
-      <div class="members">${t.players.length ? esc(t.players.join(', ')) : 'ยังไม่มีผู้เล่น'}</div>
-      <div style="margin-top:6px;font-weight:700;color:var(--accent2)">${t.score} คะแนน · หลอก AI ได้ ${t.aiFooled} ครั้ง</div>`;
+      <div class="members">${t.players.length ? esc(t.players.join(', ')) : 'No players yet'}</div>
+      <div style="margin-top:6px;font-weight:700;color:var(--accent2)">${t.score} pts · fooled the AI ${t.aiFooled}×</div>`;
     grid.appendChild(div);
   });
 }
@@ -279,10 +279,10 @@ document.querySelectorAll('.size-btn').forEach(btn => {
   };
 });
 $('undoBtn').onclick = () => socket.emit('undo');
-$('clearBtn').onclick = () => { if (confirm('ล้างภาพทั้งหมดของทีม?')) socket.emit('clear'); };
+$('clearBtn').onclick = () => { if (confirm("Clear your team's whole drawing?")) socket.emit('clear'); };
 
 $('submitDrawing').onclick = () => {
-  if (!confirm('ส่งภาพของทีมเลยหรือไม่? ทุกคนในทีมจะวาดต่อไม่ได้แล้ว')) return;
+  if (!confirm("Submit your team's drawing? Nobody on the team can draw after this.")) return;
   socket.emit('submit-drawing', { image: canvas.toDataURL('image/png') });
 };
 
@@ -320,7 +320,7 @@ socket.on('guess-task', ({ image }) => {
 $('guessBtn').onclick = () => {
   const text = $('guessInput').value.trim();
   if (!text) return;
-  if (!confirm(`ยืนยันคำตอบของทีม: "${text}" ?`)) return;
+  if (!confirm(`Confirm your team's answer: "${text}"?`)) return;
   socket.emit('submit-guess', { text });
 };
 $('guessInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('guessBtn').click(); });
@@ -328,7 +328,7 @@ $('guessInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('gue
 socket.on('team-guessed', ({ guess }) => {
   $('guessInputRow').style.display = 'none';
   $('guessDoneMsg').style.display = 'block';
-  $('guessDoneMsg').textContent = `✅ ทีมคุณตอบแล้วว่า "${guess}" — รอทีมอื่น…`;
+  $('guessDoneMsg').textContent = `✅ Your team answered "${guess}" — waiting for the other teams…`;
 });
 
 // ---------------------------------------------------------------------------
@@ -341,21 +341,21 @@ socket.on('results', ({ round, results }) => {
   for (const r of results) {
     const card = document.createElement('div');
     card.className = 'result-card';
-    const conf = r.aiConfidence != null ? ` (มั่นใจ ${r.aiConfidence}%)` : '';
+    const conf = r.aiConfidence != null ? ` (${r.aiConfidence}% confident)` : '';
     card.innerHTML = `
       <img src="${r.drawing}" alt="">
       <div class="result-body">
-        <div class="team">${esc(r.teamName)}${r.teamId === myTeamId ? ' ⭐ (ทีมคุณ)' : ''}</div>
-        <div class="word">คำจริง: ${esc(r.word)}</div>
+        <div class="team">${esc(r.teamName)}${r.teamId === myTeamId ? ' ⭐ (your team)' : ''}</div>
+        <div class="word">Word: ${esc(r.word)}</div>
         <div class="verdict">
-          <span class="pill ${r.aiCorrect ? 'bad' : 'good'}">${r.aiCorrect ? 'AI ทายถูก 😱' : 'หลอก AI สำเร็จ! 🎉'}</span>
+          <span class="pill ${r.aiCorrect ? 'bad' : 'good'}">${r.aiCorrect ? 'AI guessed it 😱' : 'AI fooled! 🎉'}</span>
           🤖 "${esc(r.aiGuess ?? '-')}"${conf}
         </div>
         <div class="verdict">
-          <span class="pill ${r.humanCorrect ? 'good' : 'bad'}">${r.humanCorrect ? 'มนุษย์ทายถูก +โบนัส' : 'มนุษย์ทายผิด'}</span>
-          🧑 ${r.guessedByName ? esc(r.guessedByName) + ': ' : ''}"${esc(r.humanGuess || 'ไม่ได้ตอบ')}"
+          <span class="pill ${r.humanCorrect ? 'good' : 'bad'}">${r.humanCorrect ? 'Human correct +bonus' : 'Human wrong'}</span>
+          🧑 ${r.guessedByName ? esc(r.guessedByName) + ': ' : ''}"${esc(r.humanGuess || 'no answer')}"
         </div>
-        <div class="result-points ${r.points > 0 ? 'plus' : 'zero'}">+${r.points} คะแนน</div>
+        <div class="result-points ${r.points > 0 ? 'plus' : 'zero'}">+${r.points} pts</div>
       </div>`;
     grid.appendChild(card);
   }

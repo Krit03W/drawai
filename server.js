@@ -91,7 +91,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 8e6 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+// no-cache: browsers must revalidate JS/CSS every load, so redeploys reach
+// every device without a hard refresh (ETag still avoids re-downloading).
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res) => res.set('Cache-Control', 'no-cache'),
+}));
 app.get('/host', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
 
 // ---------------------------------------------------------------------------
@@ -188,7 +192,7 @@ async function openaiChat(messages, maxTokens = 300, temperature = 0) {
 async function generateWords(count) {
   const used = game.usedWords;
   if (!OPENAI_API_KEY) {
-    io.to('hosts').emit('toast', '⚠️ ไม่มี OPENAI_API_KEY — ใช้คำสำรองในเครื่องแทน');
+    io.to('hosts').emit('toast', '⚠️ No OPENAI_API_KEY — using built-in fallback words');
     return pickUniqueWords(count, game.difficulty, used);
   }
   try {
@@ -212,7 +216,7 @@ async function generateWords(count) {
     return [...unique, ...pickUniqueWords(count - unique.length, game.difficulty, [...used, ...unique])];
   } catch (err) {
     console.error('Word generation failed, using fallback list:', err.message);
-    io.to('hosts').emit('toast', `⚠️ สุ่มคำผ่าน OpenAI ล้มเหลว (${err.message.slice(0, 80)}) — ใช้คำสำรองแทน`);
+    io.to('hosts').emit('toast', `⚠️ OpenAI word generation failed (${err.message.slice(0, 80)}) — using fallback words`);
     return pickUniqueWords(count, game.difficulty, used);
   }
 }
@@ -279,7 +283,7 @@ async function judgeMatches(pairs) {
 async function startRound(drawSeconds, guessSeconds, difficulty) {
   const active = activeTeamIds();
   if (active.length < 2) {
-    io.to('hosts').emit('toast', 'ต้องมีอย่างน้อย 2 ทีมที่มีผู้เล่นออนไลน์');
+    io.to('hosts').emit('toast', 'At least 2 teams need players online to start');
     return;
   }
   clearTimers();
@@ -346,7 +350,7 @@ function startGuessing() {
   // Only teams that produced a drawing take part in the rotation.
   const ids = activeRoundTeamIds().filter(id => game.teams[id].rd.drawing);
   if (ids.length < 2) {
-    io.emit('toast', 'มีภาพส่งเข้ามาไม่พอ (ต้องอย่างน้อย 2 ทีม) — จบรอบ');
+    io.emit('toast', 'Not enough drawings submitted (need at least 2 teams) — round ended');
     game.phase = 'lobby';
     broadcastState();
     return;
@@ -467,9 +471,9 @@ io.on('connection', (socket) => {
 
   socket.on('login', ({ teamId: id, password, playerName }, cb) => {
     const t = game.teams[id];
-    if (!t) return cb?.({ ok: false, error: 'ไม่พบทีมนี้' });
+    if (!t) return cb?.({ ok: false, error: 'Team not found' });
     if (t.password !== String(password || '').trim()) {
-      return cb?.({ ok: false, error: 'รหัสผ่านไม่ถูกต้อง' });
+      return cb?.({ ok: false, error: 'Incorrect password' });
     }
     const name = String(playerName || '').trim().slice(0, 24) || 'Player';
     teamId = id;
@@ -489,7 +493,7 @@ io.on('connection', (socket) => {
 
   socket.on('host-login', ({ password }, cb) => {
     if (String(password || '') !== HOST_PASSWORD) {
-      return cb?.({ ok: false, error: 'รหัสผ่านโฮสต์ไม่ถูกต้อง' });
+      return cb?.({ ok: false, error: 'Incorrect host password' });
     }
     isHost = true;
     socket.join('hosts');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,16 +14,16 @@
   <div class="screen active" id="screen-login">
     <div class="center-wrap">
       <h1 class="logo">🎨 AI Can't Guess This!</h1>
-      <p class="tagline">วาดให้เพื่อนเดาออก… แต่ให้ AI เดาไม่ถูก!</p>
+      <p class="tagline">Draw so your friends can guess it… but the AI can't!</p>
       <div class="card">
-        <label>เลือกทีมของคุณ</label>
+        <label>Choose your team</label>
         <div class="team-grid" id="teamGrid"></div>
-        <label>รหัสผ่านทีม</label>
-        <input type="password" id="teamPassword" placeholder="รหัสผ่านของทีม" autocomplete="off">
-        <label>ชื่อผู้เล่น</label>
-        <input type="text" id="playerName" placeholder="ชื่อเล่นของคุณ" maxlength="24">
+        <label>Team password</label>
+        <input type="password" id="teamPassword" placeholder="Your team's password" autocomplete="off">
+        <label>Player name</label>
+        <input type="text" id="playerName" placeholder="Your nickname" maxlength="24">
         <div style="margin-top:18px">
-          <button class="btn big" id="loginBtn" style="width:100%">เข้าร่วมทีม 🚀</button>
+          <button class="btn big" id="loginBtn" style="width:100%">Join Team 🚀</button>
         </div>
         <p class="error" id="loginError"></p>
       </div>
@@ -35,12 +35,12 @@
     <div class="lobby-wrap">
       <div class="topbar">
         <h1 class="logo" style="font-size:1.5rem">🎨 AI Can't Guess This!</h1>
-        <span class="badge">ทีม: <b id="lobbyTeamName"></b></span>
+        <span class="badge">Team: <b id="lobbyTeamName"></b></span>
       </div>
       <div class="card" style="text-align:center">
         <div class="big-emoji">⏳</div>
-        <h2>รอโฮสต์เริ่มรอบเกม…</h2>
-        <p style="color:var(--muted)">ชวนเพื่อนร่วมทีมเข้ามาให้ครบ แล้วเตรียมปากกาให้พร้อม!</p>
+        <h2>Waiting for the host to start the round…</h2>
+        <p style="color:var(--muted)">Get your whole team in here and grab your pens!</p>
       </div>
       <div class="lobby-grid" id="lobbyGrid"></div>
     </div>
@@ -50,8 +50,8 @@
   <div class="screen" id="screen-generating">
     <div class="status-wrap">
       <div class="spinner"></div>
-      <h2>🎲 กำลังสุ่มคำลับให้แต่ละทีม…</h2>
-      <p>AI กำลังคิดคำที่ไม่ซ้ำกันให้ทุกทีม</p>
+      <h2>🎲 Generating secret words…</h2>
+      <p>The AI is picking a unique word for every team</p>
     </div>
   </div>
 
@@ -60,11 +60,11 @@
     <div class="draw-layout">
       <div class="draw-main">
         <div class="topbar">
-          <span class="badge">รอบที่ <b id="drawRound"></b> · ทีม <b id="drawTeamName"></b></span>
+          <span class="badge">Round <b id="drawRound"></b> · Team <b id="drawTeamName"></b></span>
           <div class="timer" id="drawTimer">--</div>
         </div>
         <div class="word-banner">
-          <div class="small">คำลับของทีมคุณ — วาดให้เพื่อนเดาออก แต่ AI เดาไม่ถูก! <span id="drawDiff"></span></div>
+          <div class="small">Your team's secret word — humans should guess it, the AI shouldn't! <span id="drawDiff"></span></div>
           <div class="word" id="drawWord">…</div>
         </div>
         <canvas id="canvas" width="900" height="600"></canvas>
@@ -75,21 +75,21 @@
           <button class="color-dot" data-color="#2fbf71" style="background:#2fbf71"></button>
           <button class="color-dot" data-color="#f4a261" style="background:#f4a261"></button>
           <button class="color-dot" data-color="#9b5de5" style="background:#9b5de5"></button>
-          <button class="color-dot" data-color="#ffffff" style="background:#ffffff;border:3px solid #ccc" title="ยางลบ"></button>
+          <button class="color-dot" data-color="#ffffff" style="background:#ffffff;border:3px solid #ccc" title="Eraser"></button>
           <button class="size-btn selected" data-size="4"><i style="width:5px;height:5px"></i></button>
           <button class="size-btn" data-size="10"><i style="width:10px;height:10px"></i></button>
           <button class="size-btn" data-size="22"><i style="width:17px;height:17px"></i></button>
           <span class="spacer"></span>
           <button class="btn secondary" id="undoBtn">↩︎ Undo</button>
-          <button class="btn secondary" id="clearBtn">🗑 ล้าง</button>
-          <button class="btn" id="submitDrawing">ส่งภาพ ✅</button>
+          <button class="btn secondary" id="clearBtn">🗑 Clear</button>
+          <button class="btn" id="submitDrawing">Submit ✅</button>
         </div>
         <div class="guess-done" id="drawSubmittedMsg" style="display:none">
-          ✅ ทีมคุณส่งภาพแล้ว — รอทีมอื่นให้ครบ…
+          ✅ Your team has submitted — waiting for the other teams…
         </div>
       </div>
       <div class="sideboard card">
-        <div class="board-title">🏆 ตารางคะแนน</div>
+        <div class="board-title">🏆 Scoreboard</div>
         <div id="drawBoard"></div>
       </div>
     </div>
@@ -99,15 +99,15 @@
   <div class="screen" id="screen-guess">
     <div class="guess-wrap">
       <div class="topbar">
-        <span class="badge">รอบทายภาพ · ทีม <b id="guessTeamName"></b></span>
+        <span class="badge">Guessing round · Team <b id="guessTeamName"></b></span>
         <div class="timer" id="guessTimer">--</div>
       </div>
       <div class="card">
-        <h2 style="margin-bottom:12px">🕵️ ภาพนี้จากทีมอื่น… คุณคิดว่ามันคืออะไร?</h2>
-        <img id="guessImage" alt="ภาพจากทีมอื่น">
+        <h2 style="margin-bottom:12px">🕵️ This drawing is from another team… what is it?</h2>
+        <img id="guessImage" alt="Drawing from another team">
         <div class="guess-input-row" id="guessInputRow">
-          <input type="text" id="guessInput" placeholder="พิมพ์คำตอบของทีม… (ตอบได้ทีมละ 1 ครั้ง)" maxlength="60">
-          <button class="btn" id="guessBtn">ส่งคำตอบ</button>
+          <input type="text" id="guessInput" placeholder="Type your team's answer… (one answer per team)" maxlength="60">
+          <button class="btn" id="guessBtn">Submit answer</button>
         </div>
         <div class="guess-done" id="guessDoneMsg" style="display:none"></div>
       </div>
@@ -119,8 +119,8 @@
     <div class="status-wrap">
       <div class="big-emoji">🤖</div>
       <div class="spinner"></div>
-      <h2>AI กำลังวิเคราะห์ภาพวาดทุกทีม…</h2>
-      <p>ลุ้นกันว่า AI จะโดนหลอกหรือไม่!</p>
+      <h2>The AI is analyzing every team's drawing…</h2>
+      <p>Let's see if it gets fooled!</p>
     </div>
   </div>
 
@@ -128,11 +128,11 @@
   <div class="screen" id="screen-results">
     <div class="results-wrap">
       <div class="topbar">
-        <h1 class="logo" style="font-size:1.5rem">📊 ผลรอบที่ <span id="resultsRound"></span></h1>
-        <span class="badge">รอโฮสต์เริ่มรอบถัดไป…</span>
+        <h1 class="logo" style="font-size:1.5rem">📊 Round <span id="resultsRound"></span> Results</h1>
+        <span class="badge">Waiting for the host to start the next round…</span>
       </div>
       <div class="card">
-        <div class="board-title">🏆 อันดับคะแนนรวม</div>
+        <div class="board-title">🏆 Overall standings</div>
         <div id="resultsBoard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px"></div>
       </div>
       <div class="results-grid" id="resultsGrid"></div>

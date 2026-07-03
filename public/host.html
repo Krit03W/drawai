@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,10 +16,10 @@
       <h1 class="logo">🎛️ Host Control</h1>
       <p class="tagline">AI Can't Guess This!</p>
       <div class="card">
-        <label>รหัสผ่านโฮสต์</label>
-        <input type="password" id="hostPassword" placeholder="รหัสผ่านโฮสต์">
+        <label>Host password</label>
+        <input type="password" id="hostPassword" placeholder="Host password">
         <div style="margin-top:18px">
-          <button class="btn big" id="hostLoginBtn" style="width:100%">เข้าสู่ระบบ</button>
+          <button class="btn big" id="hostLoginBtn" style="width:100%">Log in</button>
         </div>
         <p class="error" id="loginError"></p>
       </div>
@@ -31,7 +31,7 @@
     <div class="results-wrap">
       <div class="topbar">
         <h1 class="logo" style="font-size:1.6rem">🎨 AI Can't Guess This!</h1>
-        <span class="badge">รอบที่ <b id="roundNum">0</b> · สถานะ: <b id="phaseLabel">-</b></span>
+        <span class="badge">Round <b id="roundNum">0</b> · Status: <b id="phaseLabel">-</b></span>
         <span class="badge" id="aiBadge"></span>
         <div class="timer" id="hostTimer">--</div>
       </div>
@@ -39,32 +39,32 @@
       <div class="card" style="margin-bottom:16px">
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
           <div>
-            <label>เวลาวาด (วินาที)</label>
+            <label>Draw time (sec)</label>
             <input type="number" id="drawSeconds" value="120" min="30" max="600" style="width:120px">
           </div>
           <div>
-            <label>เวลาทาย (วินาที)</label>
+            <label>Guess time (sec)</label>
             <input type="number" id="guessSeconds" value="45" min="15" max="300" style="width:120px">
           </div>
           <div>
-            <label>ความยากของคำ</label>
+            <label>Word difficulty</label>
             <select id="difficulty" style="width:230px">
-              <option value="1">1 · ง่ายมาก 🍼</option>
-              <option value="2" selected>2 · ง่าย 🙂</option>
-              <option value="3">3 · ปานกลาง 🤔</option>
-              <option value="4">4 · ยาก 🥵</option>
-              <option value="5">5 · ไม่น่าจะวาดได้ 💀</option>
+              <option value="1">1 · Very easy 🍼</option>
+              <option value="2" selected>2 · Easy 🙂</option>
+              <option value="3">3 · Medium 🤔</option>
+              <option value="4">4 · Hard 🥵</option>
+              <option value="5">5 · Nearly impossible 💀</option>
             </select>
           </div>
-          <button class="btn big" id="startBtn">▶️ เริ่มรอบใหม่</button>
-          <button class="btn secondary" id="forceBtn">⏭ ข้ามเฟสนี้</button>
+          <button class="btn big" id="startBtn">▶️ Start Round</button>
+          <button class="btn secondary" id="forceBtn">⏭ Skip Phase</button>
           <span class="spacer"></span>
-          <button class="btn danger" id="resetBtn">🔄 เริ่มเกมใหม่ (ล้างคะแนน)</button>
+          <button class="btn danger" id="resetBtn">🔄 New Game (reset scores)</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="board-title">🏆 ตารางคะแนนสด</div>
+        <div class="board-title">🏆 Live Scoreboard</div>
         <div id="hostBoard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px"></div>
       </div>
 
